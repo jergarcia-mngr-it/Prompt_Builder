@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Builder — V2.1</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --surface-accent: #eef6ff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #0f766e;
+      --warning: #b45309;
+      --shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --max: 1320px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, .10), transparent 30%),
+        linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+      line-height: 1.5;
+    }
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+    .hero { padding: 42px 0 22px; }
+    .hero-card {
+      background: linear-gradient(135deg, rgba(255,255,255,.97), rgba(238,246,255,.92));
+      border: 1px solid rgba(226, 232, 240, .9);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 34px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, .08);
+      color: var(--primary-dark);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      margin-bottom: 14px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 2.9rem);
+      line-height: 1.05;
+    }
+    .hero p {
+      margin: 0;
+      max-width: 920px;
+      color: var(--muted);
+      font-size: 1.03rem;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 24px;
+      padding: 12px 0 28px;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      min-width: 0;
+    }
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 1.25rem;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: .95rem;
+      margin-bottom: 20px;
+    }
+    .field-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+    label.main-label {
+      font-size: .95rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .help {
+      font-size: .84rem;
+      color: var(--muted);
+      margin-top: -2px;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 15px;
+      font: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    textarea { min-height: 118px; resize: vertical; }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: rgba(37, 99, 235, .55);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+    }
+    .toggle-wrap {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+    }
+    .segmented {
+      display: inline-grid;
+      grid-template-columns: repeat(3, minmax(140px, 1fr));
+      gap: 8px;
+      max-width: 560px;
+    }
+    .segmented input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .segmented label {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all .2s ease;
+    }
+    .segmented input:checked + label {
+      background: rgba(37, 99, 235, .08);
+      color: var(--primary-dark);
+      border-color: rgba(37, 99, 235, .35);
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, .18);
+    }
+    .optional-badge {
+      display: inline-flex;
+      margin-left: 8px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--warning);
+      background: rgba(180,83,9,.08);
+      border: 1px solid rgba(180,83,9,.16);
+      padding: 3px 8px;
+      border-radius: 999px;
+      vertical-align: middle;
+    }
+    .image-fields[hidden] { display: none !important; }
+    .text-fields[hidden], .tone-field[hidden] { display: none !important; }
+    .audience-box {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px;
+    }
+    .audience-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .audience-summary {
+      font-size: .92rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      min-height: 18px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(37,99,235,.08);
+      color: var(--primary-dark);
+      font-size: .82rem;
+      font-weight: 700;
+      border: 1px solid rgba(37,99,235,.14);
+    }
+    .aud-groups {
+      display: grid;
+      gap: 14px;
+      max-height: 320px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+    .aud-group {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface-soft);
+    }
+    .aud-group-title {
+      font-size: .86rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+    }
+    .aud-items {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .check-card {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: pointer;
+      transition: all .18s ease;
+      font-size: .93rem;
+    }
+    .check-card:hover {
+      border-color: rgba(37,99,235,.28);
+      transform: translateY(-1px);
+    }
+    .check-card input {
+      margin-top: 2px;
+      accent-color: var(--primary);
+    }
+    .check-card:has(input:checked) {
+      border-color: rgba(37,99,235,.36);
+      background: rgba(37,99,235,.05);
+      box-shadow: inset 0 0 0 1px rgba(37,99,235,.10);
+    }
+    .output-panel { margin-bottom: 32px; }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    button {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font: inherit;
+      font-weight: 700;
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 14px 30px rgba(37, 99, 235, .24);
+    }
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost {
+      background: rgba(15,118,110,.08);
+      color: var(--success);
+      border: 1px solid rgba(15,118,110,.16);
+    }
+    .output-box {
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+      color: #e5eef9;
+      padding: 20px;
+      min-height: 280px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .output-box pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: .95rem;
+      line-height: 1.65;
+    }
+    .meta-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: .84rem;
+    }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .aud-items { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .container { width: min(var(--max), calc(100% - 20px)); }
+      .hero-card, .panel { padding: 20px; }
+      .actions { flex-direction: column; }
+      button { width: 100%; }
+      .segmented { max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">Prompt builder · V2</div>
+        <h1>Générez un prompt optimisé</h1>
+        <p>Configurez votre demande, choisissez le type de sortie, puis générez un prompt structuré, professionnel et directement exploitable.</p>
+      </div>
+    </section>
+
+    <form id="promptForm">
+      <div class="layout">
+        <section class="panel">
+          <h2><span class="title-icon" aria-hidden="true">🧩</span> Contenu & structure</h2>
+          <div class="subtitle">Définissez le sujet, le contexte et la cible de votre contenu.</div>
+
+          <div class="toggle-wrap">
+            <label class="main-label">Nature de la sortie</label>
+            <div class="segmented">
+              <div>
+                <input type="radio" id="natureText" name="nature" value="texte" checked>
+                <label for="natureText">Texte</label>
+              </div>
+              <div>
+                <input type="radio" id="natureImage" name="nature" value="image">
+                <label for="natureImage">Image</label>
+              </div>
+              <div>
+                <input type="radio" id="natureInfographie" name="nature" value="infographie">
+                <label for="natureInfographie">Infographie</label>
+              </div>
+            </div>
+            <div class="help">Les champs spécifiques au visuel sont optionnels et s’affichent uniquement si la sortie attendue est une image ou une infographie. Le style visuel s’adapte automatiquement à la nature de sortie choisie.</div>
+          </div>
+
+          <div class="field-grid">
+            <div class="field">
+              <label class="main-label" for="project">Projet</label>
+              <input type="text" id="project" placeholder="Décrivez le sujet ou l’objectif principal">
+            </div>
+
+            <div class="field">
+              <label class="main-label" for="extraInfo">Infos supplémentaires</label>
+              <textarea id="extraInfo" placeholder="Contexte, scénario, contraintes, mots-clés, éléments à intégrer…"></textarea>
+            </div>
+
+            <div class="field">
+              <label class="main-label">Audience / public cible</label>
+              <div class="audience-box">
+                <div class="audience-toolbar">
+                  <div class="audience-summary"><span id="audienceCount">0</span> audience(s) sélectionnée(s)</div>
+                  <button type="button" class="btn-secondary" id="clearAudienceBtn">Effacer la sélection</button>
+                </div>
+                <div class="chips" id="audienceChips"></div>
+                <div class="aud-groups">
+                  <div class="aud-group"><div class="aud-group-title">Niveau d’expertise</div><div class="aud-items">
+<label class="check-card" for="aud_0_0">
+<input type="checkbox" id="aud_0_0" name="audience" value="Débutants" data-category="Niveau d’expertise">
+<span>Débutants</span>
+</label>
+<label class="check-card" for="aud_0_1">
+<input type="checkbox" id="aud_0_1" name="audience" value="Experts / techniques" data-category="Niveau d’expertise">
+<span>Experts / techniques</span>
+</label>
+<label class="check-card" for="aud_0_2">
+<input type="checkbox" id="aud_0_2" name="audience" value="Intermédiaires" data-category="Niveau d’expertise">
+<span>Intermédiaires</span>
+</label>
+</div></div>
+<div class="aud-group"><div class="aud-group-title">Contexte professionnel</div><div class="aud-items">
+<label class="check-card" for="aud_1_0">
+<input type="checkbox" id="aud_1_0" name="audience" value="Professionnels / B2B" data-category="Contexte professionnel">
+<span>Professionnels / B2B</span>
+</label>
+<label class="check-card" for="aud_1_1">
+<input type="checkbox" id="aud_1_1" name="audience" value="Décideurs / dirigeants" data-category="Contexte professionnel">
+<span>Décideurs / dirigeants</span>
+</label>
+<label class="check-card" for="aud_1_2">
+<input type="checkbox" id="aud_1_2" name="audience" value="Managers" data-category="Contexte professionnel">
+<span>Managers</span>
+</label>
+<label class="check-card" for="aud_1_3">
+<input type="checkbox" id="aud_1_3" name="audience" value="Développeurs" data-category="Contexte professionnel">
+<span>Développeurs</span>
+</label>
+<label class="check-card" for="aud_1_4">
+<input type="checkbox" id="aud_1_4" name="audience" value="Clients / prospects" data-category="Contexte professionnel">
+<span>Clients / prospects</span>
+</label>
+<label class="check-card" for="aud_1_5">
+<input type="checkbox" id="aud_1_5" name="audience" value="Utilisateurs finaux" data-category="Contexte professionnel">
+<span>Utilisateurs finaux</span>
+</label>
+<label class="check-card" for="aud_1_6">
+<input type="checkbox" id="aud_1_6" name="audience" value="Formateurs / enseignants" data-category="Contexte professionnel">
+<span>Formateurs / enseignants</span>
+</label>
+<label class="check-card" for="aud_1_7">
+<input type="checkbox" id="aud_1_7" name="audience" value="Chercheurs / analystes" data-category="Contexte professionnel">
+<span>Chercheurs / analystes</span>
+</label>
+<label class="check-card" for="aud_1_8">
+<input type="checkbox" id="aud_1_8" name="audience" value="Équipe produit / projet" data-category="Contexte professionnel">
+<span>Équipe produit / projet</span>
+</label>
+</div></div>
+<div class="aud-group"><div class="aud-group-title">Portée de l’audience</div><div class="aud-items">
+<label class="check-card" for="aud_2_0">
+<input type="checkbox" id="aud_2_0" name="audience" value="Grand public" data-category="Portée de l’audience">
+<span>Grand public</span>
+</label>
+<label class="check-card" for="aud_2_1">
+<input type="checkbox" id="aud_2_1" name="audience" value="Enfants" data-category="Portée de l’audience">
+<span>Enfants</span>
+</label>
+<label class="check-card" for="aud_2_2">
+<input type="checkbox" id="aud_2_2" name="audience" value="Étudiants" data-category="Portée de l’audience">
+<span>Étudiants</span>
+</label>
+<label class="check-card" for="aud_2_3">
+<input type="checkbox" id="aud_2_3" name="audience" value="Adolescents" data-category="Portée de l’audience">
+<span>Adolescents</span>
+</label>
+</div></div>
+                </div>
+              </div>
+              <div class="help">Sélection multiple autorisée. Les choix seront listés dans le prompt généré.</div>
+            </div>
+
+            <div class="field">
+              <label class="main-label" for="projectType">Type de projet</label>
+              <select id="projectType">
+                <option value="">Sélectionner un type de projet</option>
+<optgroup label="Général">
+<option value="Usage générique">Usage générique</option>
+<option value="Infographie">Infographie</option>
+<option value="Présentation">Présentation</option>
+<option value="Article de blog">Article de blog</option>
+<option value="Email professionnel">Email professionnel</option>
+<option value="Rapport d&#x27;analyse">Rapport d&#x27;analyse</option>
+<option value="Note de synthèse">Note de synthèse</option>
+<option value="Compte-rendu">Compte-rendu</option>
+<option value="Checklist">Checklist</option>
+</optgroup>
+<optgroup label="Marketing &amp; Digital">
+<option value="Post réseaux sociaux">Post réseaux sociaux</option>
+<option value="Post LinkedIn">Post LinkedIn</option>
+<option value="Thread X / Twitter">Thread X / Twitter</option>
+<option value="Story / Carrousel social">Story / Carrousel social</option>
+<option value="Newsletter">Newsletter</option>
+<option value="Landing page">Landing page</option>
+<option value="Page SEO">Page SEO</option>
+<option value="Page produit web">Page produit web</option>
+<option value="Script vidéo">Script vidéo</option>
+<option value="Script podcast">Script podcast</option>
+</optgroup>
+<optgroup label="Business &amp; Documents professionnels">
+<option value="Pitch deck">Pitch deck</option>
+<option value="Business plan">Business plan</option>
+<option value="Executive summary">Executive summary</option>
+<option value="Étude de cas">Étude de cas</option>
+<option value="Livre blanc">Livre blanc</option>
+<option value="Brief créatif">Brief créatif</option>
+<option value="Fiche produit">Fiche produit</option>
+<option value="Communiqué de presse">Communiqué de presse</option>
+<option value="Proposition commerciale">Proposition commerciale</option>
+<option value="Réponse à appel d’offres">Réponse à appel d’offres</option>
+<option value="Dossier de décision">Dossier de décision</option>
+<option value="Note de cadrage">Note de cadrage</option>
+<option value="Procédure opérationnelle">Procédure opérationnelle</option>
+</optgroup>
+<optgroup label="Formation &amp; Pédagogie">
+<option value="Cours / Leçon">Cours / Leçon</option>
+<option value="Plan de cours">Plan de cours</option>
+<option value="Quiz / Questionnaire">Quiz / Questionnaire</option>
+<option value="Fiche de révision">Fiche de révision</option>
+<option value="Exercices pratiques">Exercices pratiques</option>
+<option value="Guide pas à pas">Guide pas à pas</option>
+<option value="FAQ pédagogique">FAQ pédagogique</option>
+<option value="Étude de cas pédagogique">Étude de cas pédagogique</option>
+<option value="Corrigé / Correction">Corrigé / Correction</option>
+</optgroup>
+<optgroup label="Créatif &amp; Branding">
+<option value="Histoire / Récit">Histoire / Récit</option>
+<option value="Poème / Texte créatif">Poème / Texte créatif</option>
+<option value="Slogan / Tagline">Slogan / Tagline</option>
+<option value="Nom de marque / Naming">Nom de marque / Naming</option>
+<option value="Script publicitaire">Script publicitaire</option>
+<option value="Concept créatif">Concept créatif</option>
+<option value="Univers de marque">Univers de marque</option>
+<option value="Prompt visuel">Prompt visuel</option>
+</optgroup>
+<optgroup label="Stratégie &amp; Pilotage">
+<option value="Stratégie de contenu">Stratégie de contenu</option>
+<option value="Roadmap produit">Roadmap produit</option>
+<option value="Plan de projet">Plan de projet</option>
+<option value="Plan d’action">Plan d’action</option>
+<option value="Analyse SWOT">Analyse SWOT</option>
+<option value="Personas">Personas</option>
+<option value="User journey">User journey</option>
+<option value="OKR / Objectifs">OKR / Objectifs</option>
+<option value="Business Model Canvas">Business Model Canvas</option>
+<option value="Analyse de risques">Analyse de risques</option>
+<option value="Plan de transformation">Plan de transformation</option>
+</optgroup>
+<optgroup label="Produit, Tech &amp; Delivery">
+<option value="Cahier des charges fonctionnel">Cahier des charges fonctionnel</option>
+<option value="Spécifications techniques">Spécifications techniques</option>
+<option value="Architecture système">Architecture système</option>
+<option value="Vision produit">Vision produit</option>
+<option value="PRD">PRD</option>
+<option value="Discovery brief">Discovery brief</option>
+<option value="User stories">User stories</option>
+<option value="Critères d’acceptation">Critères d’acceptation</option>
+<option value="Documentation API">Documentation API</option>
+<option value="Code / Script">Code / Script</option>
+<option value="README projet">README projet</option>
+<option value="Changelog">Changelog</option>
+<option value="Plan de test">Plan de test</option>
+<option value="Cas de test">Cas de test</option>
+<option value="Guide d’exploitation">Guide d’exploitation</option>
+<option value="Procédure incident">Procédure incident</option>
+<option value="Prompt d’automatisation IA">Prompt d’automatisation IA</option>
+</optgroup>
+<optgroup label="Design &amp; Expérience utilisateur">
+<option value="Brief design">Brief design</option>
+<option value="Description de wireframe">Description de wireframe</option>
+<option value="Design system">Design system</option>
+<option value="User flow">User flow</option>
+<option value="Description de prototype">Description de prototype</option>
+<option value="Audit UX">Audit UX</option>
+<option value="Microcopy UX">Microcopy UX</option>
+<option value="Évaluation heuristique UX">Évaluation heuristique UX</option>
+<option value="Prompt UI génératif">Prompt UI génératif</option>
+</optgroup>
+<optgroup label="Recherche, Analyse &amp; Data">
+<option value="Résumé de recherche">Résumé de recherche</option>
+<option value="Synthèse de données">Synthèse de données</option>
+<option value="Analyse d’insights">Analyse d’insights</option>
+<option value="Plan de recherche">Plan de recherche</option>
+<option value="Hypothèses de recherche">Hypothèses de recherche</option>
+<option value="Méta-analyse">Méta-analyse</option>
+<option value="Revue de littérature">Revue de littérature</option>
+<option value="Benchmark">Benchmark</option>
+<option value="Analyse concurrentielle">Analyse concurrentielle</option>
+<option value="Dashboard narrative">Dashboard narrative</option>
+</optgroup>
+<optgroup label="Réunions &amp; Événements">
+<option value="Programme d’événement">Programme d’événement</option>
+<option value="Invitation">Invitation</option>
+<option value="Annonce d’événement">Annonce d’événement</option>
+<option value="Compte-rendu de réunion">Compte-rendu de réunion</option>
+<option value="Ordre du jour">Ordre du jour</option>
+<option value="Atelier / Workshop">Atelier / Workshop</option>
+<option value="Discours / Allocution">Discours / Allocution</option>
+<option value="Rétrospective">Rétrospective</option>
+</optgroup>
+<optgroup label="Support &amp; Service Client">
+<option value="Réponse support">Réponse support</option>
+<option value="Article de base de connaissances">Article de base de connaissances</option>
+<option value="FAQ support">FAQ support</option>
+<option value="Réponse SAV">Réponse SAV</option>
+</optgroup>
+<optgroup label="RH &amp; Management">
+<option value="Fiche de poste">Fiche de poste</option>
+<option value="Entretien annuel">Entretien annuel</option>
+<option value="Feedback collaborateur">Feedback collaborateur</option>
+<option value="Plan de développement individuel">Plan de développement individuel</option>
+<option value="Support de réunion 1:1">Support de réunion 1:1</option>
+</optgroup>
+<optgroup label="Juridique &amp; Conformité">
+<option value="Politique interne">Politique interne</option>
+<option value="Conditions générales">Conditions générales</option>
+<option value="Analyse de conformité">Analyse de conformité</option>
+<option value="Charte / Code de conduite">Charte / Code de conduite</option>
+</optgroup>
+              </select>
+            </div>
+
+            <div class="field image-fields" id="fieldStructure" hidden>
+              <label class="main-label" for="structure">Structure de l’infographie <span class="optional-badge">Optionnel</span></label>
+              <select id="structure">
+                <option value="">Sélectionner une structure</option>
+<optgroup label="Séquentiel &amp; temporel">
+<option value="Chronologie / Timeline">Chronologie / Timeline</option>
+<option value="Processus / Étapes">Processus / Étapes</option>
+<option value="Roadmap">Roadmap</option>
+</optgroup>
+<optgroup label="Comparatif &amp; analytique">
+<option value="Comparaison">Comparaison</option>
+<option value="Avant / Après">Avant / Après</option>
+<option value="Heatmap">Heatmap</option>
+<option value="Matrice">Matrice</option>
+<option value="Venn diagramme">Venn diagramme</option>
+<option value="Carte géographique">Carte géographique</option>
+</optgroup>
+<optgroup label="Organisation &amp; hiérarchie">
+<option value="Hiérarchie / Pyramide">Hiérarchie / Pyramide</option>
+<option value="Carte mentale / Mind map">Carte mentale / Mind map</option>
+<option value="Organigramme">Organigramme</option>
+<option value="Arbre de décision">Arbre de décision</option>
+<option value="Pyramide inversée">Pyramide inversée</option>
+<option value="Hub-and-spoke">Hub-and-spoke</option>
+</optgroup>
+<optgroup label="Flux &amp; transformation">
+<option value="Cycle">Cycle</option>
+<option value="Funnel">Funnel</option>
+<option value="Sankey simplifié">Sankey simplifié</option>
+</optgroup>
+<optgroup label="Synthèse &amp; pilotage">
+<option value="Liste / Bullets">Liste / Bullets</option>
+<option value="Dashboard / KPI">Dashboard / KPI</option>
+<option value="Grille / Cards">Grille / Cards</option>
+<option value="Checklist visuelle">Checklist visuelle</option>
+</optgroup>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2><span class="title-icon" aria-hidden="true">🎨</span> Style & format</h2>
+          <div class="subtitle">Ajustez les paramètres textuels, le ton et, selon la sortie, les paramètres visuels.</div>
+
+          <div class="field-grid">
+            <div class="field text-fields" id="fieldLanguage">
+              <label class="main-label" for="language">Langue des textes de sortie</label>
+              <select id="language">
+                <option value="">Sélectionner une langue</option>
+                <optgroup label="A à C">
+                  <option value="Afrikaans - Afrikaans">Afrikaans - Afrikaans</option>
+                  <option value="Allemand - German">Allemand - German</option>
+                  <option value="Anglais - English">Anglais - English</option>
+                  <option value="Anglais (UK)">Anglais (UK)</option>
+                  <option value="Anglais (US)">Anglais (US)</option>
+                  <option value="Arabe - Arabic">Arabe - Arabic</option>
+                  <option value="Chinois (simplifié) - Chinese (Simplified)">Chinois (simplifié) - Chinese (Simplified)</option>
+                  <option value="Chinois (traditionnel) - Chinese (Traditional)">Chinois (traditionnel) - Chinese (Traditional)</option>
+                  <option value="Coréen - Korean">Coréen - Korean</option>
+                </optgroup>
+                <optgroup label="D à H">
+                  <option value="Danois - Danish">Danois - Danish</option>
+                  <option value="Espagnol - Spanish">Espagnol - Spanish</option>
+                  <option value="Espagnol (Amérique latine)">Espagnol (Amérique latine)</option>
+                  <option value="Espagnol (Espagne)">Espagnol (Espagne)</option>
+                  <option value="Finnois - Finnish">Finnois - Finnish</option>
+                  <option value="Français (Canada)">Français (Canada)</option>
+                  <option value="Français (France)">Français (France)</option>
+                  <option value="Grec - Greek">Grec - Greek</option>
+                  <option value="Hébreu - Hebrew">Hébreu - Hebrew</option>
+                  <option value="Hindi - Hindi">Hindi - Hindi</option>
+                  <option value="Hongrois - Hungarian">Hongrois - Hungarian</option>
+                </optgroup>
+                <optgroup label="I à P">
+                  <option value="Indonésien - Indonesian">Indonésien - Indonesian</option>
+                  <option value="Italien - Italian">Italien - Italian</option>
+                  <option value="Japonais - Japanese">Japonais - Japanese</option>
+                  <option value="Néerlandais - Dutch">Néerlandais - Dutch</option>
+                  <option value="Norvégien - Norwegian">Norvégien - Norwegian</option>
+                  <option value="Polonais - Polish">Polonais - Polish</option>
+                  <option value="Portugais - Portuguese">Portugais - Portuguese</option>
+                  <option value="Portugais (Brésil)">Portugais (Brésil)</option>
+                  <option value="Portugais (Portugal)">Portugais (Portugal)</option>
+                </optgroup>
+                <optgroup label="R à V">
+                  <option value="Roumain - Romanian">Roumain - Romanian</option>
+                  <option value="Russe - Russian">Russe - Russian</option>
+                  <option value="Suédois - Swedish">Suédois - Swedish</option>
+                  <option value="Swahili - Swahili">Swahili - Swahili</option>
+                  <option value="Tchèque - Czech">Tchèque - Czech</option>
+                  <option value="Thaï - Thai">Thaï - Thai</option>
+                  <option value="Turc - Turkish">Turc - Turkish</option>
+                  <option value="Vietnamien - Vietnamese">Vietnamien - Vietnamese</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="field text-fields" id="fieldTextStyle">
+              <label class="main-label" for="style">Style du texte de sortie</label>
+              <select id="style">
+                <option value="">Sélectionner un style</option>
+<optgroup label="Clarté &amp; Densité">
+<option value="Clair et concis">Clair et concis</option>
+<option value="Synthétique">Synthétique</option>
+<option value="Minimaliste">Minimaliste</option>
+<option value="Descriptif">Descriptif</option>
+<option value="Structuré">Structuré</option>
+<option value="Précis">Précis</option>
+</optgroup>
+<optgroup label="Explication &amp; Pédagogie">
+<option value="Instructif">Instructif</option>
+<option value="Didactique">Didactique</option>
+<option value="Illustratif">Illustratif</option>
+<option value="Séquentiel">Séquentiel</option>
+<option value="Vulgarisé">Vulgarisé</option>
+</optgroup>
+<optgroup label="Analyse &amp; Raisonnement">
+<option value="Analytique">Analytique</option>
+<option value="Comparatif">Comparatif</option>
+<option value="Expositif">Expositif</option>
+<option value="Argumentatif">Argumentatif</option>
+<option value="Critique">Critique</option>
+<option value="Exploratoire">Exploratoire</option>
+</optgroup>
+<optgroup label="Narration &amp; Expression">
+<option value="Narratif">Narratif</option>
+<option value="Persuasif">Persuasif</option>
+<option value="Métaphorique">Métaphorique</option>
+<option value="Poétique">Poétique</option>
+<option value="Inspirant">Inspirant</option>
+<option value="Neutre">Neutre</option>
+</optgroup>
+<optgroup label="Format conversationnel &amp; éditorial">
+<option value="Dialogique">Dialogique</option>
+<option value="Journalistique">Journalistique</option>
+<option value="Question-réponse">Question-réponse</option>
+<option value="Professionnel">Professionnel</option>
+</optgroup>
+              </select>
+            </div>
+
+            <div class="field tone-field" id="fieldTone">
+              <label class="main-label" for="tone">Ton</label>
+              <select id="tone">
+                <option value="">Sélectionner un ton</option>
+                <optgroup label="Professionnel & relationnel">
+                  <option value="Professionnel - Formel et orienté business">Professionnel - Formel et orienté business</option>
+                  <option value="Amical - Chaleureux et accessible">Amical - Chaleureux et accessible</option>
+                  <option value="Formel - Strict et cérémonieux">Formel - Strict et cérémonieux</option>
+                  <option value="Décontracté - Relaxed et informel">Décontracté - Relaxed et informel</option>
+                  <option value="Conversationnel - Dialogue naturel">Conversationnel - Dialogue naturel</option>
+                </optgroup>
+                <optgroup label="Clarté & expertise">
+                  <option value="Technique - Précis et spécialisé">Technique - Précis et spécialisé</option>
+                  <option value="Pédagogique - Éducatif et explicatif">Pédagogique - Éducatif et explicatif</option>
+                  <option value="Académique - Scientifique et rigoureux">Académique - Scientifique et rigoureux</option>
+                  <option value="Neutre - Objectif et impartial">Neutre - Objectif et impartial</option>
+                </optgroup>
+                <optgroup label="Impact & émotion">
+                  <option value="Créatif - Imaginatif et original">Créatif - Imaginatif et original</option>
+                  <option value="Humoristique - Léger et amusant">Humoristique - Léger et amusant</option>
+                  <option value="Empathique - Compréhensif et sensible">Empathique - Compréhensif et sensible</option>
+                  <option value="Autoritaire - Directif et assertif">Autoritaire - Directif et assertif</option>
+                  <option value="Enthousiaste - Énergique et positif">Enthousiaste - Énergique et positif</option>
+                  <option value="Inspirant - Motivant et encourageant">Inspirant - Motivant et encourageant</option>
+                  <option value="Provocateur - Stimulant et challengeant">Provocateur - Stimulant et challengeant</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <div class="field text-fields" id="fieldDetail">
+              <label class="main-label" for="detail">Niveau de détail du texte de sortie</label>
+              <select id="detail">
+                <option value="">Sélectionner un niveau de détail</option>
+<optgroup label="Densité de contenu">
+<option value="Résumé exécutif">Résumé exécutif</option>
+<option value="Minimal">Minimal</option>
+<option value="Aperçu">Aperçu</option>
+<option value="Standard">Standard</option>
+<option value="Détaillé">Détaillé</option>
+<option value="Exhaustif">Exhaustif</option>
+<option value="Encyclopédique">Encyclopédique</option>
+</optgroup>
+<optgroup label="Profondeur d’analyse">
+<option value="Approfondi">Approfondi</option>
+<option value="Granulaire">Granulaire</option>
+<option value="Multi-niveaux">Multi-niveaux</option>
+</optgroup>
+<optgroup label="Angle de détail">
+<option value="Technique">Technique</option>
+<option value="Stratégique">Stratégique</option>
+<option value="Opérationnel">Opérationnel</option>
+<option value="Décisionnel">Décisionnel</option>
+</optgroup>
+              </select>
+            </div>
+
+            <div class="field text-fields" id="fieldFormat">
+              <label class="main-label" for="format">Format du texte de sortie</label>
+              <select id="format">
+                <option value="">Sélectionner un format</option>
+<optgroup label="Texte &amp; rédaction">
+<option value="Paragraphe">Paragraphe</option>
+<option value="Markdown">Markdown</option>
+<option value="HTML">HTML</option>
+<option value="Plain text">Plain text</option>
+<option value="Rich text">Rich text</option>
+<option value="Article">Article</option>
+<option value="Email">Email</option>
+<option value="One-pager">One-pager</option>
+<option value="Executive summary">Executive summary</option>
+</optgroup>
+<optgroup label="Listes &amp; structures simples">
+<option value="Liste à puces">Liste à puces</option>
+<option value="Liste numérotée">Liste numérotée</option>
+<option value="Liste de définitions">Liste de définitions</option>
+<option value="Checklist">Checklist</option>
+<option value="Étapes numérotées">Étapes numérotées</option>
+</optgroup>
+<optgroup label="Structures analytiques &amp; visuelles">
+<option value="Tableau">Tableau</option>
+<option value="Plan / Outline">Plan / Outline</option>
+<option value="Mind map">Mind map</option>
+<option value="Timeline">Timeline</option>
+<option value="Diagramme texte">Diagramme texte</option>
+<option value="Mermaid">Mermaid</option>
+</optgroup>
+<optgroup label="Formats conversationnels &amp; éditoriaux">
+<option value="FAQ">FAQ</option>
+<option value="Script / Dialogue">Script / Dialogue</option>
+<option value="Tutoriel">Tutoriel</option>
+<option value="Recette">Recette</option>
+<option value="Tweet / Thread">Tweet / Thread</option>
+<option value="Présentation (slides)">Présentation (slides)</option>
+<option value="Meeting notes">Meeting notes</option>
+</optgroup>
+<optgroup label="Formats techniques &amp; données">
+<option value="Code">Code</option>
+<option value="JSON">JSON</option>
+<option value="XML">XML</option>
+<option value="YAML">YAML</option>
+<option value="CSV">CSV</option>
+<option value="TSV">TSV</option>
+<option value="LaTeX">LaTeX</option>
+<option value="Pseudo-code">Pseudo-code</option>
+<option value="SQL">SQL</option>
+<option value="Regex">Regex</option>
+<option value="API response">API response</option>
+<option value="Documentation technique">Documentation technique</option>
+</optgroup>
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="main-label" for="usageChannel">Canal d’usage</label>
+              <select id="usageChannel">
+                <option value="">Sélectionner un canal</option>
+                <option value="présentation">Présentation</option>
+                <option value="blog">Blog</option>
+                <option value="réseaux sociaux">Réseaux sociaux</option>
+              </select>
+            </div>
+
+            <div class="field image-fields" id="fieldVisualStyle" hidden>
+              <label class="main-label" for="visualStyle">Style visuel de sortie <span class="optional-badge">Optionnel</span></label>
+              <select id="visualStyle">
+                <option value="">Sélectionner un style visuel</option>
+              </select>
+            </div>
+
+            <div class="field image-fields" id="fieldPalette" hidden>
+              <label class="main-label" for="palette">Palette couleurs de sortie <span class="optional-badge">Optionnel</span></label>
+              <select id="palette">
+                <option value="">Sélectionner une palette</option>
+<optgroup label="Mode Auto">
+<option value="Auto (selon le style)">Auto (selon le style)</option>
+</optgroup>
+<optgroup label="Usages &amp; contextes Pro">
+<option value="Bleu &amp; Blanc (corporate)">Bleu &amp; Blanc (corporate)</option>
+</optgroup>
+<optgroup label="Ambiances colorées">
+<option value="Chaud (orange, rouge, ocre)">Chaud (orange, rouge, ocre)</option>
+<option value="Pastel (doux, rassurant)">Pastel (doux, rassurant)</option>
+<option value="Néon (futuriste)">Néon (futuriste)</option>
+<option value="Naturel (vert, marron, beige)">Naturel (vert, marron, beige)</option>
+</optgroup>
+<optgroup label="Harmonies &amp; structures colorées">
+<option value="Monochromatique">Monochromatique</option>
+<option value="Vive (couleurs vives sur fond blanc)">Vive (couleurs vives sur fond blanc)</option>
+</optgroup>
+              </select>
+            </div>
+
+            <div class="field image-fields" id="fieldSize" hidden>
+              <label class="main-label" for="size">Taille de sortie <span class="optional-badge">Optionnel</span></label>
+              <select id="size">
+                <option value="">Sélectionner une taille</option>
+<optgroup label="Formats écran &amp; digital">
+<option value="16:9 (Paysage / Présentation)">16:9 (Paysage / Présentation)</option>
+<option value="4:3">4:3</option>
+</optgroup>
+<optgroup label="Formats sociaux &amp; plateformes">
+<option value="1:1 (Carré / Instagram)">1:1 (Carré / Instagram)</option>
+<option value="9:16 (Portrait / Mobile, Pinterest)">9:16 (Portrait / Mobile, Pinterest)</option>
+<option value="4:5">4:5</option>
+</optgroup>
+<optgroup label="Formats impression">
+<option value="A4">A4</option>
+<option value="A3">A3</option>
+</optgroup>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel output-panel">
+        <h2><span class="title-icon" aria-hidden="true">✨</span> Prompt généré</h2>
+        <div class="subtitle">Générez, réinitialisez ou copiez votre prompt final.</div>
+
+        <div class="actions">
+          <button type="button" class="btn-primary" id="generateBtn">Générer le prompt</button>
+          <button type="reset" class="btn-secondary" id="resetBtn">Réinitialiser</button>
+          <button type="button" class="btn-ghost" id="copyBtn">Copier dans le presse-papiers</button>
+        </div>
+
+        <div class="output-box">
+          <pre id="output">Le prompt généré apparaîtra ici</pre>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  
+  <script>
+    const VISUAL_STYLE_OPTIONS = {
+      infographie: [
+        { label: 'Illustration technique & schématique', options: ['Vue éclatée', 'Blueprint', 'Wireframe', 'Schéma isométrique', 'Coupe technique', 'Line art technique'] },
+        { label: 'Design d’information & infographie', options: ['Flat Design', 'Swiss Design', 'Infographie éditoriale', 'Sketchnote', 'Whiteboard', 'Diagramme de transit'] },
+        { label: 'Futuriste & science-fiction', options: ['Cyberpunk', 'Holographique', 'Interface futuriste', 'Synthwave / Retrowave', 'Matrix Digital Style'] },
+        { label: 'Illustration populaire & animation', options: ['Anime', 'Kawaii', 'Pixel Art', 'Comic Book', 'Claymation', 'Ligne claire', 'Anime Action'] },
+        { label: 'Matériaux & fabrication', options: ['Paper Cutout', 'Collage papier', 'Croquis crayon', 'Chalkboard', 'Aquarelle', 'Risograph'] },
+        { label: 'Mouvements artistiques & graphiques', options: ['Art déco', 'Art nouveau', 'Bauhaus', 'Constructivisme', 'Pop Art', 'Surréalisme', 'Cubisme', 'Memphis Design', 'Street Art', 'Graffiti'] },
+        { label: 'Éditorial, affiche & collection', options: ['Vintage Poster', 'Affiche moderniste', 'Knolling', 'Magazine infographique'] },
+        { label: 'Interface & rendu numérique', options: ['Dark UI'] },
+        { label: 'Futuriste & numérique', options: ['Electronic'] },
+        { label: 'Interface & produit digital', options: ['Dashboard SaaS', 'Notion Card Style'] },
+        { label: 'Présentation & communication visuelle', options: ['Ted Style Conference'] },
+        { label: 'Illustration populaire & stylisation', options: ['Blocky Style'] },
+        { label: 'Interface & engagement visuel', options: ['Gamified Interface'] },
+        { label: 'Maquettes & construction visuelle', options: ['Lego Style'] },
+        { label: 'Références historiques & artistiques', options: ['DaVinci Study'] },
+        { label: 'Signalétique & design', options: ['London Metro Map'] }
+      ],
+      image: [
+        { label: 'Réaliste', options: ['Réaliste', 'Photographique', 'Cinématographique', 'Publicitaire / marketing'] },
+        { label: 'Illustration', options: ['Illustration digitale', 'Illustration éditoriale', 'Illustration vectorielle', 'Flat design', 'Isométrique'] },
+        { label: 'Artistique', options: ['Peinture numérique', 'Aquarelle', 'Croquis / esquisse', 'Concept art'] },
+        { label: '3D', options: ['3D réaliste', '3D stylisée'] },
+        { label: 'Stylisé', options: ['Cartoon', 'Bande dessinée', 'Manga / anime'] },
+        { label: 'Élégant / premium', options: ['Minimaliste', 'Moderne professionnel', 'Luxe / premium'] }
+      ]
+    };
+
+    const els = {
+      form: document.getElementById('promptForm'),
+      output: document.getElementById('output'),
+      copyBtn: document.getElementById('copyBtn'),
+      clearAudienceBtn: document.getElementById('clearAudienceBtn'),
+      audienceCount: document.getElementById('audienceCount'),
+      audienceChips: document.getElementById('audienceChips'),
+      project: document.getElementById('project'),
+      extraInfo: document.getElementById('extraInfo'),
+      projectType: document.getElementById('projectType'),
+      structure: document.getElementById('structure'),
+      language: document.getElementById('language'),
+      style: document.getElementById('style'),
+      tone: document.getElementById('tone'),
+      detail: document.getElementById('detail'),
+      format: document.getElementById('format'),
+      usageChannel: document.getElementById('usageChannel'),
+      visualStyle: document.getElementById('visualStyle'),
+      visualStyleLabel: document.querySelector('label[for="visualStyle"]'),
+      palette: document.getElementById('palette'),
+      size: document.getElementById('size'),
+      imageFields: document.querySelectorAll('.image-fields'),
+      textFields: document.querySelectorAll('.text-fields'),
+      toneField: document.getElementById('fieldTone'),
+      audienceChecks: () => Array.from(document.querySelectorAll('input[name="audience"]')),
+      nature: () => document.querySelector('input[name="nature"]:checked')?.value || 'texte'
+    };
+
+    function safeValue(value, fallback = 'Non renseigné') {
+      return value && String(value).trim() ? String(value).trim() : fallback;
+    }
+
+    function getSelectedAudiences() {
+      return els.audienceChecks().filter(cb => cb.checked).map(cb => cb.value);
+    }
+
+    function renderAudienceSummary() {
+      const selected = getSelectedAudiences();
+      els.audienceCount.textContent = selected.length;
+      els.audienceChips.innerHTML = selected.map(v => `<span class="chip">${v}</span>`).join('');
+    }
+
+    function populateVisualStyles() {
+      const nature = els.nature();
+      const previous = els.visualStyle.value;
+      const groups = VISUAL_STYLE_OPTIONS[nature] || [];
+      els.visualStyle.innerHTML = '<option value="">Sélectionner un style visuel</option>' + groups.map(group => {
+        const options = group.options.map(option => `<option value="${option}">${option}</option>`).join('');
+        return `<optgroup label="${group.label}">${options}</optgroup>`;
+      }).join('');
+
+      if (groups.some(group => group.options.includes(previous))) {
+        els.visualStyle.value = previous;
+      }
+
+      if (nature === 'infographie') {
+        els.visualStyleLabel.innerHTML = 'Style visuel de sortie <span class="optional-badge">Optionnel · styles infographie</span>';
+      } else if (nature === 'image') {
+        els.visualStyleLabel.innerHTML = 'Style visuel de sortie <span class="optional-badge">Optionnel · styles image</span>';
+      } else {
+        els.visualStyleLabel.innerHTML = 'Style visuel de sortie <span class="optional-badge">Optionnel</span>';
+      }
+    }
+
+    function updateImageFields() {
+      const nature = els.nature();
+      const isVisual = ['image', 'infographie'].includes(nature);
+      const isTextual = ['texte', 'infographie'].includes(nature);
+
+      els.imageFields.forEach(block => {
+        if (block.id === 'fieldStructure') {
+          block.hidden = nature !== 'infographie';
+        } else {
+          block.hidden = !isVisual;
+        }
+      });
+
+      els.textFields.forEach(block => {
+        block.hidden = nature === 'image';
+      });
+
+      els.toneField.hidden = !isTextual;
+      populateVisualStyles();
+    }
+
+    function buildPrompt() {
+      const nature = els.nature();
+      const natureLabel = nature.charAt(0).toUpperCase() + nature.slice(1);
+      const project = safeValue(els.project.value);
+      const extraInfo = safeValue(els.extraInfo.value);
+      const projectType = safeValue(els.projectType.value);
+      const audiences = getSelectedAudiences();
+      const audienceText = audiences.length ? audiences.join(', ') : 'Non renseigné';
+      const structure = safeValue(els.structure.value);
+      const language = safeValue(els.language.value);
+      const style = safeValue(els.style.value);
+      const tone = safeValue(els.tone.value);
+      const detail = safeValue(els.detail.value);
+      const format = safeValue(els.format.value);
+      const usageChannel = safeValue(els.usageChannel.value);
+      const visualStyle = safeValue(els.visualStyle.value);
+      const palette = safeValue(els.palette.value);
+      const size = safeValue(els.size.value);
+
+      const lines = [
+        `Crée un(e) ${nature} professionnel(le) pour expliquer ${project}.`,
+        `Infos supplémentaires: Le scénario : ${extraInfo}.`,
+        `Type de projet: ${projectType}.`,
+        '',
+        `Audience cible: ${audienceText}.`,
+        ...(nature === 'infographie' ? [`Structure de l’infographie: ${structure}.`] : []),
+        ...(['texte', 'infographie'].includes(nature) ? [`Langue des textes de sortie: ${language}.`] : []),
+        ...(['texte', 'infographie'].includes(nature) ? [
+          `Style du texte de sortie: ${style}.`,
+          `Ton: ${tone}.`,
+          `Niveau de détail du texte de sortie: ${detail}.`,
+          `Format du texte de sortie: ${format}.`
+        ] : [])
+      ];
+
+      if (['image', 'infographie'].includes(nature)) {
+        lines.push(`Style visuel de sortie: ${visualStyle}.`);
+        lines.push(`Palette couleurs: ${palette}.`);
+        lines.push(`Taille de sortie: ${size}.`);
+      }
+
+      if (nature !== 'image') {
+        lines.push(
+          '',
+          'Exigences visuelles:',
+          '- Hiérarchie typographique claire (titres > sous-titres > corps)',
+          '- Maximum 5 bullets par section',
+          '- Texte lisible sur écran',
+          '- Icônes simples et cohérentes',
+          "- Beaucoup d'espace négatif (aéré)",
+          '',
+          "Ne mets pas de majuscules dans les titres sauf au premier mot, aux noms propres et dans les acronymes.",
+          `Avant de générer le ${nature}, peux-tu vérifier scrupuleusement l'orthographe du texte de façon à éliminer les fautes.`
+        );
+      }
+
+      lines.push(
+        `Génère un ${nature} qui peut être facilement utilisé pour ${usageChannel} et qui reste mémorable et professionnelle.`
+      );
+
+      return lines.join('\n');
+    }
+
+    document.querySelectorAll('input[name="nature"]').forEach(radio => {
+      radio.addEventListener('change', updateImageFields);
+    });
+
+    els.audienceChecks().forEach(cb => {
+      cb.addEventListener('change', renderAudienceSummary);
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', () => {
+      els.output.textContent = buildPrompt();
+    });
+
+    els.clearAudienceBtn.addEventListener('click', () => {
+      els.audienceChecks().forEach(cb => cb.checked = false);
+      renderAudienceSummary();
+    });
+
+    els.form.addEventListener('reset', () => {
+      setTimeout(() => {
+        renderAudienceSummary();
+        updateImageFields();
+        els.output.textContent = 'Le prompt généré apparaîtra ici';
+      }, 0);
+    });
+
+    els.copyBtn.addEventListener('click', async () => {
+      const text = els.output.textContent.trim();
+      if (!text || text === 'Le prompt généré apparaîtra ici') return;
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = els.copyBtn.textContent;
+        els.copyBtn.textContent = 'Copié';
+        setTimeout(() => els.copyBtn.textContent = original, 1400);
+      } catch (e) {
+        alert('Copie impossible sur ce navigateur.');
+      }
+    });
+
+    renderAudienceSummary();
+    updateImageFields();
+  </script>
+
+</body>
+</html>
